@@ -9,4 +9,4 @@ jobs:
         with:
           node-version: 24
       - shell: bash
-        run: npm ci && npm run build && npm run test
+        run: npm ci && npm run test
