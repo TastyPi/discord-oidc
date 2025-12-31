@@ -1,4 +1,7 @@
+.devcontainer/
 .idea/
 dist/
 node_modules/
+Containerfile
+LICENSE
 tsconfig.tsbuildinfo

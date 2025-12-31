@@ -1,0 +1,17 @@
+{
+  "name": "discord-oidc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/main.js",
+    "dev": "concurrently -n \"TSC,NODE\" -c \"blue,green\" \"npm run watch:tsc\" \"npm run watch:node\"",
+    "watch:tsc": "tsc -b -w --preserveWatchOutput",
+    "watch:node": "node --watch --watch-preserve-output dist/main.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.9.3"
+  }
+}

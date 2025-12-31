@@ -1,0 +1,26 @@
+name: Build container image
+on:
+  push:
+    tags:
+      - v*
+concurrency:
+  group: build-container-image-${{ github.sha }}
+  cancel-in-progress: true
+jobs:
+  buildah:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - id: metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}
+      - id: build
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: Containerfile
+          labels: ${{ steps.metadata.outputs.labels }}
+          tags: ${{ steps.metadata.outputs.tags }}
+      - uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build.outputs.image }}
