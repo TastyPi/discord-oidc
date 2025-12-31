@@ -9,6 +9,9 @@ concurrency:
 jobs:
   buildah:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v6
       - id: metadata
@@ -24,3 +27,5 @@ jobs:
       - uses: redhat-actions/push-to-registry@v2
         with:
           tags: ${{ steps.metadata.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
