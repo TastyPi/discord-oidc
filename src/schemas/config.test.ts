@@ -11,6 +11,10 @@ const validClient: ClientConfig = {
 const validConfig: Config = {
   url: "http://localhost:3000/",
   clients: [validClient],
+  discord: {
+    client_id: "discord_client_id",
+    client_secret: "discord_client_secret",
+  },
 };
 
 describe("Config", () => {

@@ -11,14 +11,21 @@
     "test": "npm run build && node --test dist/**/*.test.js"
   },
   "dependencies": {
+    "@koa/router": "^15.1.1",
+    "koa": "^3.1.1",
+    "koa-mount": "^4.2.0",
     "oidc-provider": "^9.6.0",
     "typebox": "^1.0.70",
     "yaml": "^2.8.2"
   },
   "devDependencies": {
+    "@types/koa": "^3.0.1",
+    "@types/koa-mount": "^4.0.5",
     "@types/node": "^25.0.3",
     "@types/oidc-provider": "^9.5.0",
     "concurrently": "^9.1.2",
+    "fetch-cookie": "^3.2.0",
+    "nock": "^14.0.10",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
