@@ -1,8 +1,9 @@
 {
-	"name": "Discord OIDC",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:24",
-	"remoteUser": "node",
-	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1": {}
-	}
+  "name": "Discord OIDC",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+  "remoteUser": "node",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [3000]
 }
