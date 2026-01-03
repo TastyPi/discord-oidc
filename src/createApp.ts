@@ -5,14 +5,13 @@ import Koa from "koa";
 import mount from "koa-mount";
 import Router from "@koa/router";
 import * as path from "node:path";
-import { profileClaims } from "./claims/profile.js";
-import { isScope, type Scope, scopes } from "./oidc/scopes.js";
 import {
   createFindAccount,
   type FindAccountOptions,
 } from "./oidc/findAccount.js";
 import { DiscordAccessTokens } from "./DiscordAccessTokens.js";
 import type { APIUser } from "discord-api-types/v10";
+import { claims } from "./oidc/claims.js";
 
 export function createApp(config: Config): Koa {
   Value.Assert(Config, config);
@@ -39,7 +38,7 @@ export function createApp(config: Config): Koa {
         for (const scope of (details.prompt.details.missingOIDCScope as
           | string[]
           | undefined) ?? []) {
-          if (isScope(scope)) {
+          if (scope === "openid" || scope in claims) {
             grant.addOIDCScope(scope);
           }
         }
@@ -96,7 +95,7 @@ export function createApp(config: Config): Koa {
     }
     const token: { access_token: string } = await tokenResponse.json();
 
-    const meResponse = await fetch("https://discord.com/api/users/@me", {
+    const meResponse = await fetch("https://discord.com/api/v10/users/@me", {
       headers: { authorization: `Bearer ${token.access_token}` },
     });
     if (!meResponse.ok) {
@@ -117,6 +116,8 @@ export function createApp(config: Config): Koa {
     // interactionFinished wrote to ctx.res directly
   });
 
+  provider.on("server_error", (ctx, error) => console.log(error));
+
   const app = new Koa();
   app.proxy = true;
   app.use(router.routes());
@@ -129,14 +130,15 @@ function oidcConfig(
   options: FindAccountOptions,
 ): oidc.Configuration {
   return {
-    claims: {
-      openid: ["sub", "aud", "exp", "iat", "iss"],
-      // https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/74290
-      profile: [...profileClaims],
-    } satisfies Record<Scope, string[]>,
+    claims,
     clients: config.clients,
-    scopes: scopes.toArray(),
     findAccount: createFindAccount(options),
+    renderError(ctx, out, error) {
+      console.error(error);
+      ctx.type = "application/json";
+      ctx.body = out;
+    },
+    scopes: Object.keys(claims),
   };
 }
 

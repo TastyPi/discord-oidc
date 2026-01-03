@@ -110,7 +110,7 @@ describe("createApp", () => {
       nock("https://discord.com")
         .post("/api/oauth2/token")
         .reply(200, { access_token: "discord_access_token" })
-        .get("/api/users/@me")
+        .get("/api/v10/users/@me")
         .matchHeader("authorization", "Bearer discord_access_token")
         .reply(200, {
           avatar: "discord_avatar",
@@ -232,7 +232,6 @@ describe("createApp", () => {
         const authorizationURL = openid.buildAuthorizationUrl(openidConfig, {
           scope: scopes.join(" "),
         });
-        console.log(authorizationURL.toString());
         const authorizationResponse = await fetchCookie(authorizationURL, {
           redirect: "manual",
         });
@@ -243,7 +242,7 @@ describe("createApp", () => {
         nock("https://discord.com")
           .post("/api/oauth2/token")
           .reply(200, { access_token: "discord_access_token" })
-          .get("/api/users/@me")
+          .get("/api/v10/users/@me")
           .matchHeader("authorization", "Bearer discord_access_token")
           .reply(200, {
             avatar: "discord_avatar",

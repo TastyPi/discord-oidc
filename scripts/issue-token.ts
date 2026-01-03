@@ -36,6 +36,7 @@ const url = new URL(discordConfig.clients[0].redirect_uris[0]);
 url.searchParams.set("code", code);
 url.searchParams.set("iss", config.serverMetadata().issuer);
 const token = await client.authorizationCodeGrant(config, url);
+console.log(token);
 
 if (!token.id_token) {
   console.error("No id_token in token response");

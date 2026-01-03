@@ -1,8 +1,6 @@
 import type * as oidc from "oidc-provider";
-import type { Promisable } from "type-fest";
 import type { DiscordAccessTokens } from "../DiscordAccessTokens.js";
-import { isScope, type Scope } from "./scopes.js";
-import { getProfileClaims } from "../claims/profile.js";
+import { resolveClaims } from "./claims.js";
 
 export type FindAccountOptions = {
   discordAccessTokens: DiscordAccessTokens;
@@ -16,26 +14,11 @@ export function createFindAccount({
       accountId: sub,
       async claims(use: string, scope: string) {
         const accessToken = await discordAccessTokens.get(sub);
-        if (!accessToken) return { sub };
-        const claims = await Promise.all(
-          scope.split(" ").map((scope) => {
-            return isScope(scope) ? resolveClaim[scope](accessToken) : {};
-          }),
-        );
-        return claims.reduce<oidc.AccountClaims>(
-          (c1, c2) => ({ ...c1, ...c2 }),
-          { sub },
-        );
+        const newClaims = accessToken
+          ? await resolveClaims(scope, accessToken)
+          : {};
+        return { ...newClaims, sub };
       },
     } satisfies oidc.Account;
   };
 }
-
-type ClaimResolver = (
-  accessToken: string,
-) => Promisable<Record<string, string | undefined>>;
-
-const resolveClaim: Record<Scope, ClaimResolver> = {
-  openid: () => ({}),
-  profile: getProfileClaims,
-};
