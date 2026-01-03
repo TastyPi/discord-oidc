@@ -1,10 +1,10 @@
 import type { APIUser } from "discord-api-types/v10";
 
 export const profileClaims = [
-  "preferred_username",
+  "locale",
   "nickname",
   "picture",
-  "locale",
+  "preferred_username",
 ] as const;
 
 export type ProfileClaims = Record<

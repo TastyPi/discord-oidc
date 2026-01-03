@@ -6,20 +6,32 @@ import mount from "koa-mount";
 import Router from "@koa/router";
 import * as path from "node:path";
 import { profileClaims } from "./claims/profile.js";
+import { isScope, type Scope, scopes } from "./oidc/scopes.js";
+import {
+  createFindAccount,
+  type FindAccountOptions,
+} from "./oidc/findAccount.js";
+import { DiscordAccessTokens } from "./DiscordAccessTokens.js";
+import type { APIUser } from "discord-api-types/v10";
 
 export function createApp(config: Config): Koa {
   Value.Assert(Config, config);
-  const provider = new oidc.Provider(config.url, oidcConfig(config));
+  const discordAccessTokens = new DiscordAccessTokens();
+  const provider = new oidc.Provider(
+    config.url,
+    oidcConfig(config, { discordAccessTokens }),
+  );
   provider.proxy = true;
   const router = new Router();
   router.get("/interaction/:uid", async (ctx) => {
     const details = await provider.interactionDetails(ctx.req, ctx.res);
     switch (details.prompt.name) {
-      case "login":
+      case "login": {
         ctx.status = 303;
         ctx.redirect(discordAuthorizeURL(config, details.uid));
         return;
-      case "consent":
+      }
+      case "consent": {
         const grant = new provider.Grant({
           accountId: details.session?.accountId,
           clientId: details.params.client_id as string,
@@ -27,10 +39,8 @@ export function createApp(config: Config): Koa {
         for (const scope of (details.prompt.details.missingOIDCScope as
           | string[]
           | undefined) ?? []) {
-          switch (scope) {
-            case "openid":
-              grant.addOIDCScope(scope);
-              break;
+          if (isScope(scope)) {
+            grant.addOIDCScope(scope);
           }
         }
         await provider.interactionFinished(
@@ -39,6 +49,9 @@ export function createApp(config: Config): Koa {
           { consent: { grantId: await grant.save() } },
           { mergeWithLastSubmission: true },
         );
+        // interactionFinished wrote to ctx.res directly
+        return;
+      }
     }
   });
   router.get("/discord/callback", async (ctx) => {
@@ -91,8 +104,9 @@ export function createApp(config: Config): Koa {
       ctx.body = `Discord user lookup failed: ${await meResponse.text()}`;
       return;
     }
-    const me = await meResponse.json();
-    console.log(me);
+    const me: APIUser = await meResponse.json();
+
+    await discordAccessTokens.set(me.id, token.access_token);
 
     await provider.interactionFinished(
       ctx.req,
@@ -103,8 +117,6 @@ export function createApp(config: Config): Koa {
     // interactionFinished wrote to ctx.res directly
   });
 
-  provider.on("grant.error", (ctx, err) => console.log(err.error_detail));
-
   const app = new Koa();
   app.proxy = true;
   app.use(router.routes());
@@ -112,20 +124,19 @@ export function createApp(config: Config): Koa {
   return app;
 }
 
-function oidcConfig(config: Config): oidc.Configuration {
+function oidcConfig(
+  config: Config,
+  options: FindAccountOptions,
+): oidc.Configuration {
   return {
-    // https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/74290
-    claims: { profile: profileClaims as unknown as string[] },
+    claims: {
+      openid: ["sub", "aud", "exp", "iat", "iss"],
+      // https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/74290
+      profile: [...profileClaims],
+    } satisfies Record<Scope, string[]>,
     clients: config.clients,
-    scopes: ["openid", "profile"],
-    async findAccount(ctx, sub): Promise<oidc.Account> {
-      return {
-        accountId: sub,
-        async claims() {
-          return { sub };
-        },
-      };
-    },
+    scopes: scopes.toArray(),
+    findAccount: createFindAccount(options),
   };
 }
 

@@ -17,8 +17,10 @@ const config = await client.discovery(
   { execute: [client.allowInsecureRequests] },
 );
 
+const scope = ["openid", ...process.argv.slice(2)].join(" ");
+
 const authorizationURL = client.buildAuthorizationUrl(config, {
-  scope: "openid",
+  scope,
 });
 
 console.log(authorizationURL.toString());
@@ -42,3 +44,6 @@ if (!token.id_token) {
 
 const jwt = jwtDecode(token.id_token);
 console.log(jwt);
+
+const user = await client.fetchUserInfo(config, token.access_token, jwt.sub!);
+console.log(user);

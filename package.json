@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@koa/router": "^15.1.1",
+    "immutable": "^5.1.4",
     "koa": "^3.1.1",
     "koa-mount": "^4.2.0",
     "oidc-provider": "^9.6.0",
@@ -32,6 +33,7 @@
     "openid-client": "^6.8.1",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
+    "type-fest": "^5.3.1",
     "typescript": "^5.9.3"
   }
 }

@@ -7,6 +7,9 @@ import type { Server } from "node:http";
 import Koa from "koa";
 import makeFetchCookie from "fetch-cookie";
 import nock from "nock";
+import * as openid from "openid-client";
+import type { APIUser } from "discord-api-types/v10";
+import { jwtDecode } from "jwt-decode";
 
 const client: ClientConfig = {
   client_id: "client_id",
@@ -110,10 +113,12 @@ describe("createApp", () => {
         .get("/api/users/@me")
         .matchHeader("authorization", "Bearer discord_access_token")
         .reply(200, {
+          avatar: "discord_avatar",
+          discriminator: "discord_discriminator",
+          global_name: "discord_global_name",
           id: "discord_user_id",
           username: "discord_username",
-          avatar: "discord_avatar",
-        });
+        } satisfies APIUser);
 
       const interactionCallbackResponse = await fetchCookie(
         new URL(
@@ -206,6 +211,91 @@ describe("createApp", () => {
       assert.equal(decodedPayload.aud, client.client_id);
       assert.ok(decodedPayload.iat <= Math.floor(Date.now() / 1000));
       assert.ok(decodedPayload.exp > Math.floor(Date.now() / 1000));
+    });
+
+    describe("with issued token", () => {
+      let openidConfig: openid.Configuration;
+
+      beforeEach(async () => {
+        openidConfig = await openid.discovery(
+          new URL("/.well-known/openid-configuration", address),
+          config.clients[0].client_id,
+          config.clients[0].client_secret,
+          undefined,
+          { execute: [openid.allowInsecureRequests] },
+        );
+      });
+
+      async function issueAccessToken(...scopes: string[]) {
+        const fetchCookie = makeFetchCookie(fetch);
+
+        const authorizationURL = openid.buildAuthorizationUrl(openidConfig, {
+          scope: scopes.join(" "),
+        });
+        console.log(authorizationURL.toString());
+        const authorizationResponse = await fetchCookie(authorizationURL, {
+          redirect: "manual",
+        });
+        const uid = /\/interaction\/([^\/?#]+)/.exec(
+          authorizationResponse.headers.get("location")!,
+        )![1];
+
+        nock("https://discord.com")
+          .post("/api/oauth2/token")
+          .reply(200, { access_token: "discord_access_token" })
+          .get("/api/users/@me")
+          .matchHeader("authorization", "Bearer discord_access_token")
+          .reply(200, {
+            avatar: "discord_avatar",
+            discriminator: "discord_discriminator",
+            global_name: "discord_global_name",
+            id: "discord_user_id",
+            username: "discord_username",
+          } satisfies APIUser)
+          .persist();
+        let url = new URL(address);
+        url.pathname = "/discord/callback";
+        url.searchParams.set("code", "discord_code");
+        url.searchParams.set("state", uid);
+        while (url.hostname !== "client.fake") {
+          const response = await fetchCookie(url.toString(), {
+            redirect: "manual",
+          });
+          url = new URL(response.headers.get("location")!, address);
+        }
+
+        const redirectURL = new URL(config.clients[0].redirect_uris[0]);
+        redirectURL.searchParams.set("code", url.searchParams.get("code")!);
+        redirectURL.searchParams.set("iss", config.url);
+        const token = await openid.authorizationCodeGrant(
+          openidConfig,
+          redirectURL,
+        );
+        return {
+          accessToken: token.access_token,
+          sub: jwtDecode(token.id_token!).sub!,
+        };
+      }
+
+      it("can fetch userinfo with profile scope", async () => {
+        const { accessToken, sub } = await issueAccessToken(
+          "openid",
+          "profile",
+        );
+        const profile = await openid.fetchUserInfo(
+          openidConfig,
+          accessToken,
+          sub,
+        );
+
+        assert.deepEqual(profile, {
+          nickname: "discord_global_name",
+          picture:
+            "https://cdn.discordapp.com/avatars/discord_user_id/discord_avatar",
+          preferred_username: "discord_username",
+          sub: "discord_user_id",
+        });
+      });
     });
   });
 });
