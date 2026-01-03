@@ -21,7 +21,7 @@ jobs:
       - id: build
         uses: redhat-actions/buildah-build@v2
         with:
-          containerfiles: Containerfile
+          containerfiles: Dockerfile
           labels: ${{ steps.metadata.outputs.labels }}
           tags: ${{ steps.metadata.outputs.tags }}
       - uses: redhat-actions/push-to-registry@v2
