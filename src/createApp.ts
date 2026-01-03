@@ -1,4 +1,4 @@
-import { type ClientConfig, Config } from "./schemas/config.js";
+import { Config } from "./schemas/config.js";
 import * as oidc from "oidc-provider";
 import { Value } from "typebox/value";
 import Koa from "koa";
@@ -97,13 +97,13 @@ export function createApp(config: Config): Koa {
     await provider.interactionFinished(
       ctx.req,
       ctx.res,
-      {
-        login: { accountId: me.id },
-      },
+      { login: { accountId: me.id } },
       { mergeWithLastSubmission: false },
     );
     // interactionFinished wrote to ctx.res directly
   });
+
+  provider.on("grant.error", (ctx, err) => console.log(err.error_detail));
 
   const app = new Koa();
   app.proxy = true;
@@ -116,7 +116,7 @@ function oidcConfig(config: Config): oidc.Configuration {
   return {
     // https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/74290
     claims: { profile: profileClaims as unknown as string[] },
-    clients: config.clients.map(clientMetadata),
+    clients: config.clients,
     scopes: ["openid", "profile"],
     async findAccount(ctx, sub): Promise<oidc.Account> {
       return {
@@ -126,15 +126,6 @@ function oidcConfig(config: Config): oidc.Configuration {
         },
       };
     },
-  };
-}
-
-function clientMetadata(client: ClientConfig): oidc.ClientMetadata {
-  return {
-    grant_types: ["authorization_code"],
-    response_types: ["code"],
-    token_endpoint_auth_method: "client_secret_post",
-    ...client,
   };
 }
 

@@ -8,7 +8,8 @@
     "dev": "concurrently -n \"TSC,NODE\" -c \"blue,green\" \"npm run watch:tsc\" \"npm run watch:node\"",
     "watch:tsc": "tsc -b -w --preserveWatchOutput",
     "watch:node": "DISCORD_OIDC_CONFIG=./config.yaml node --watch-path=./config.yaml --watch-path=./dist --watch-preserve-output dist/main.js",
-    "test": "npm run build && node --import=nock --test dist/*.test.js dist/**/*.test.js"
+    "test": "npm run build && node --import=nock --test dist/*.test.js dist/**/*.test.js",
+    "issue-token": "node --import=tsx scripts/issue-token.ts"
   },
   "dependencies": {
     "@koa/router": "^15.1.1",
@@ -26,7 +27,9 @@
     "concurrently": "^9.1.2",
     "discord-api-types": "^0.38.37",
     "fetch-cookie": "^3.2.0",
+    "jwt-decode": "^4.0.0",
     "nock": "^14.0.10",
+    "openid-client": "^6.8.1",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
