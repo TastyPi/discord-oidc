@@ -8,7 +8,7 @@ import Koa from "koa";
 import makeFetchCookie from "fetch-cookie";
 import nock from "nock";
 import * as openid from "openid-client";
-import type { APIUser } from "discord-api-types/v10";
+import type { APIPartialGuild, APIUser } from "discord-api-types/v10";
 import { jwtDecode } from "jwt-decode";
 
 const client: ClientConfig = {
@@ -87,7 +87,7 @@ describe("createApp", () => {
         `https://discord.com/oauth2/authorize` +
           `?client_id=${config.discord.client_id}` +
           `&redirect_uri=${encodeURIComponent(`${config.url}/discord/callback`)}` +
-          `&response_type=code&scope=openid+identify` +
+          `&response_type=code&scope=openid+identify+guilds` +
           `&state=${uid}`,
       );
 
@@ -244,14 +244,14 @@ describe("createApp", () => {
           .reply(200, { access_token: "discord_access_token" })
           .get("/api/v10/users/@me")
           .matchHeader("authorization", "Bearer discord_access_token")
+          .times(2) // Once to get the user ID, once to get the claim data
           .reply(200, {
             avatar: "discord_avatar",
             discriminator: "discord_discriminator",
             global_name: "discord_global_name",
             id: "discord_user_id",
             username: "discord_username",
-          } satisfies APIUser)
-          .persist();
+          } satisfies APIUser);
         let url = new URL(address);
         url.pathname = "/discord/callback";
         url.searchParams.set("code", "discord_code");
@@ -281,6 +281,7 @@ describe("createApp", () => {
           "openid",
           "profile",
         );
+
         const profile = await openid.fetchUserInfo(
           openidConfig,
           accessToken,
@@ -292,6 +293,52 @@ describe("createApp", () => {
           picture:
             "https://cdn.discordapp.com/avatars/discord_user_id/discord_avatar",
           preferred_username: "discord_username",
+          sub: "discord_user_id",
+        });
+      });
+
+      it("can fetch userinfo with groups scope", async () => {
+        nock("https://discord.com")
+          .get("/api/v10/users/@me/guilds")
+          .matchHeader("authorization", "Bearer discord_access_token")
+          .reply(200, [
+            { name: "Guild 1", icon: null, splash: null, id: "guild1" },
+            { name: "Guild 2", icon: null, splash: null, id: "guild2" },
+          ] satisfies APIPartialGuild[]);
+        const { accessToken, sub } = await issueAccessToken("openid", "groups");
+
+        const profile = await openid.fetchUserInfo(
+          openidConfig,
+          accessToken,
+          sub,
+        );
+
+        assert.deepEqual(profile, {
+          groups: ["guild1", "guild2"],
+          sub: "discord_user_id",
+        });
+      });
+
+      it("retries on 429", async () => {
+        nock("https://discord.com")
+          .get("/api/v10/users/@me/guilds")
+          .matchHeader("authorization", "Bearer discord_access_token")
+          .reply(429, {}, { "Retry-After": "1" })
+          .get("/api/v10/users/@me/guilds")
+          .matchHeader("authorization", "Bearer discord_access_token")
+          .reply(200, [
+            { name: "Guild 1", icon: null, splash: null, id: "guild1" },
+          ] satisfies APIPartialGuild[]);
+        const { accessToken, sub } = await issueAccessToken("openid", "groups");
+
+        const profile = await openid.fetchUserInfo(
+          openidConfig,
+          accessToken,
+          sub,
+        );
+
+        assert.deepEqual(profile, {
+          groups: ["guild1"],
           sub: "discord_user_id",
         });
       });

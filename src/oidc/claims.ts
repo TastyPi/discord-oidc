@@ -3,6 +3,7 @@ import * as oidc from "oidc-provider";
 import type { APIUser } from "discord-api-types/v10";
 
 export const claims = {
+  groups: ["groups"],
   profile: ["locale", "nickname", "picture", "preferred_username"],
 } as const satisfies oidc.Configuration["claims"];
 
@@ -32,12 +33,18 @@ type ClaimsResolver<Scope extends keyof typeof claims> = (
 const claimResolvers: {
   [Scope in keyof typeof claims]: ClaimsResolver<Scope>;
 } = {
+  async groups(discordAccessToken: string) {
+    const guilds: { id: string }[] = await discord(
+      "/api/v10/users/@me/guilds",
+      discordAccessToken,
+    );
+    return { groups: guilds.map((guild) => guild.id) };
+  },
   async profile(discordAccessToken) {
-    const response = await fetch("https://discord.com/api/v10/users/@me", {
-      headers: { authorization: `Bearer ${discordAccessToken}` },
-    });
-    if (!response.ok) throw await DiscordError.fromResponse(response);
-    const user: APIUser = await response.json();
+    const user: APIUser = await discord(
+      "/api/v10/users/@me",
+      discordAccessToken,
+    );
     return {
       locale: user.locale,
       nickname: user.global_name,
@@ -45,24 +52,42 @@ const claimResolvers: {
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}`
         : undefined,
       preferred_username: user.username,
-    } satisfies Claims<"profile">;
+    };
   },
 };
 
+async function discord(path: string, accessToken: string) {
+  let url = new URL(path, `https://discord.com`);
+  let response = await fetch(url, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) {
+    switch (response.status) {
+      case 429: {
+        const retryAfter = parseInt(response.headers.get("Retry-After")!);
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        return discord(path, accessToken);
+      }
+    }
+    throw await DiscordError.fromResponse(response);
+  }
+  return await response.json();
+}
+
 class DiscordError extends Error {
+  static async fromResponse(response: Response, options?: ErrorOptions) {
+    return new DiscordError(
+      `${response.url}: ${response.status} ${response.statusText}`,
+      await response.text(),
+      options,
+    );
+  }
+
   private constructor(
     message: string,
     public readonly body: unknown,
     options?: ErrorOptions,
   ) {
     super(message, options);
-  }
-
-  static async fromResponse(response: Response, options?: ErrorOptions) {
-    return new DiscordError(
-      `Error calling Discord API: ${response.status} ${response.statusText}`,
-      await response.text(),
-      options,
-    );
   }
 }

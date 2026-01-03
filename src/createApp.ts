@@ -147,7 +147,7 @@ function discordAuthorizeURL(config: Config, state: string): string {
   url.searchParams.set("client_id", config.discord.client_id);
   url.searchParams.set("redirect_uri", discordRedirectURI(config));
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", "openid identify");
+  url.searchParams.set("scope", "openid identify guilds");
   url.searchParams.set("state", state);
   return url.toString();
 }

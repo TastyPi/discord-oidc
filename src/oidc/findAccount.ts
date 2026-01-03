@@ -12,7 +12,8 @@ export function createFindAccount({
   return async (ctx, sub) => {
     return {
       accountId: sub,
-      async claims(use: string, scope: string) {
+      async claims(use: string, scope: string, claims) {
+        if (use !== "userinfo") return { sub };
         const accessToken = await discordAccessTokens.get(sub);
         const newClaims = accessToken
           ? await resolveClaims(scope, accessToken)
