@@ -5,6 +5,7 @@ import Koa from "koa";
 import mount from "koa-mount";
 import Router from "@koa/router";
 import * as path from "node:path";
+import { profileClaims } from "./claims/profile.js";
 
 export function createApp(config: Config): Koa {
   Value.Assert(Config, config);
@@ -113,7 +114,10 @@ export function createApp(config: Config): Koa {
 
 function oidcConfig(config: Config): oidc.Configuration {
   return {
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/74290
+    claims: { profile: profileClaims as unknown as string[] },
     clients: config.clients.map(clientMetadata),
+    scopes: ["openid", "profile"],
     async findAccount(ctx, sub): Promise<oidc.Account> {
       return {
         accountId: sub,
@@ -129,7 +133,6 @@ function clientMetadata(client: ClientConfig): oidc.ClientMetadata {
   return {
     grant_types: ["authorization_code"],
     response_types: ["code"],
-    scope: "openid",
     token_endpoint_auth_method: "client_secret_post",
     ...client,
   };
