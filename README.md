@@ -1,6 +1,6 @@
 # discord-oidc
 
-An OpenID Connect authorization server for Discord. Initially intended to be used
+An OpenID Connect authorization server for Discord. Initially intended to be used with `jellyfin-plugin-sso`, but should be usable with anything that supports OIDC.
 
 ## Usage
 
