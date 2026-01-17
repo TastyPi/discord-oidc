@@ -9,6 +9,7 @@ import {
 import { Value } from "typebox/value";
 import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 const validClient: ClientConfig = {
   client_id: "client_id",
@@ -132,7 +133,7 @@ describe("Config", () => {
 });
 
 describe("normalizeConfig", () => {
-  const testDir = "/tmp/discord-oidc-test";
+  const testDir = join(tmpdir(), "discord-oidc-test");
 
   it("preserves config with inline secrets", async () => {
     const normalized = await normalizeConfig(validConfig);

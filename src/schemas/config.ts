@@ -58,6 +58,7 @@ export interface NormalizedClientConfig {
   client_id: string;
   client_secret: string;
   redirect_uris: string[];
+  // Index signature required by oidc-provider's ClientMetadata type
   [key: string]: unknown;
 }
 
