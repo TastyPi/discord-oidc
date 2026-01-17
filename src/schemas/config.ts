@@ -84,6 +84,8 @@ async function loadSecret(
     const secretContent = await readFile(config.client_secret_file, "utf-8");
     return secretContent.trim();
   }
+  // This should never be reached due to the union type validation,
+  // but is here for exhaustiveness checking and type safety
   throw new Error("Neither client_secret nor client_secret_file provided");
 }
 
