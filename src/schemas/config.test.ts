@@ -3,7 +3,6 @@ import * as assert from "node:assert";
 import {
   type ClientConfig,
   Config,
-  type Config as ConfigType,
   normalizeConfig,
 } from "./config.js";
 import { Value } from "typebox/value";
@@ -16,7 +15,7 @@ const validClient: ClientConfig = {
   client_secret: "client_secret",
   redirect_uris: ["redirect_uri"],
 };
-const validConfig: ConfigType = {
+const validConfig: Config = {
   url: "http://localhost:3000/",
   clients: [validClient],
   discord: {
@@ -42,7 +41,7 @@ describe("Config", () => {
   });
 
   it("allows client_secret_file instead of client_secret", async () => {
-    const configWithFile: ConfigType = {
+    const configWithFile: Config = {
       url: "http://localhost:3000/",
       clients: [
         {
@@ -60,7 +59,7 @@ describe("Config", () => {
   });
 
   it("allows discord client_secret_file instead of client_secret", async () => {
-    const configWithFile: ConfigType = {
+    const configWithFile: Config = {
       url: "http://localhost:3000/",
       clients: [validClient],
       discord: {
@@ -156,7 +155,7 @@ describe("normalizeConfig", () => {
       const secretFile = join(testDir, "client-secret.txt");
       await writeFile(secretFile, "secret_from_file\n");
 
-      const config: ConfigType = {
+      const config: Config = {
         url: "http://localhost:3000/",
         clients: [
           {
@@ -184,7 +183,7 @@ describe("normalizeConfig", () => {
       const secretFile = join(testDir, "discord-secret.txt");
       await writeFile(secretFile, "discord_secret_from_file\n");
 
-      const config: ConfigType = {
+      const config: Config = {
         url: "http://localhost:3000/",
         clients: [validClient],
         discord: {
@@ -208,7 +207,7 @@ describe("normalizeConfig", () => {
       await writeFile(clientSecretFile, "client_secret_from_file");
       await writeFile(discordSecretFile, "discord_secret_from_file");
 
-      const config: ConfigType = {
+      const config: Config = {
         url: "http://localhost:3000/",
         clients: [
           {

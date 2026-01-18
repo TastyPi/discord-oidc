@@ -1,46 +1,42 @@
 import { Type } from "typebox";
 import { readFile } from "node:fs/promises";
 
-const ClientConfig = Type.Union(
-  [
-    Type.Object(
-      {
-        client_id: Type.String(),
-        client_secret: Type.String(),
-        redirect_uris: Type.Array(Type.String(), { minItems: 1 }),
-      },
-      { additionalProperties: false },
-    ),
-    Type.Object(
-      {
-        client_id: Type.String(),
-        client_secret_file: Type.String(),
-        redirect_uris: Type.Array(Type.String(), { minItems: 1 }),
-      },
-      { additionalProperties: false },
-    ),
-  ],
-);
+const ClientConfig = Type.Union([
+  Type.Object(
+    {
+      client_id: Type.String(),
+      client_secret: Type.String(),
+      redirect_uris: Type.Array(Type.String(), { minItems: 1 }),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      client_id: Type.String(),
+      client_secret_file: Type.String(),
+      redirect_uris: Type.Array(Type.String(), { minItems: 1 }),
+    },
+    { additionalProperties: false },
+  ),
+]);
 export type ClientConfig = Type.Static<typeof ClientConfig>;
 
-const DiscordConfig = Type.Union(
-  [
-    Type.Object(
-      {
-        client_id: Type.String(),
-        client_secret: Type.String(),
-      },
-      { additionalProperties: false },
-    ),
-    Type.Object(
-      {
-        client_id: Type.String(),
-        client_secret_file: Type.String(),
-      },
-      { additionalProperties: false },
-    ),
-  ],
-);
+const DiscordConfig = Type.Union([
+  Type.Object(
+    {
+      client_id: Type.String(),
+      client_secret: Type.String(),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      client_id: Type.String(),
+      client_secret_file: Type.String(),
+    },
+    { additionalProperties: false },
+  ),
+]);
 export type DiscordConfig = Type.Static<typeof DiscordConfig>;
 
 export const Config = Type.Object(

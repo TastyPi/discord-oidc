@@ -8,6 +8,15 @@ An OpenID Connect authorization server for Discord. Initially intended to be use
 1. Create a YAML config file based on [config.example.yaml]
 2. Run the container, with `DISCORD_OIDC_CONFIG` set to the path where the config file is mounted
 
+### Configuration
+
+Secrets (client secrets) can be provided in two ways:
+
+1. **Inline in the config file**: Use `client_secret: "your_secret_here"`
+2. **From a file**: Use `client_secret_file: /path/to/secret` - useful for Docker secrets, Kubernetes secrets, etc.
+
+You must use exactly one method per client or Discord configuration.
+
 ### Examples
 
 #### Docker
