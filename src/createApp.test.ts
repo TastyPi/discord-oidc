@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, it } from "node:test";
-import type { ClientConfig, Config } from "./schemas/config.js";
+import type {
+  NormalizedClientConfig,
+  NormalizedConfig,
+} from "./schemas/config.js";
 import * as assert from "node:assert";
 import { createApp } from "./createApp.js";
 import type { AddressInfo } from "node:net";
@@ -11,13 +14,13 @@ import * as openid from "openid-client";
 import type { APIPartialGuild, APIUser } from "discord-api-types/v10";
 import { jwtDecode } from "jwt-decode";
 
-const client: ClientConfig = {
+const client: NormalizedClientConfig = {
   client_id: "client_id",
   client_secret: "client_secret",
   redirect_uris: ["https://client.fake/oauth2/callback"],
 };
 
-const config: Config = {
+const config: NormalizedConfig = {
   clients: [client],
   discord: {
     client_id: "discord_client_id",
@@ -27,10 +30,6 @@ const config: Config = {
 };
 
 describe("createApp", () => {
-  it("does not allow extra value in config", () => {
-    assert.throws(() => createApp({ ...config, extraValue: true } as Config));
-  });
-
   describe("when listening", () => {
     let app: Koa;
     let server: Server;
