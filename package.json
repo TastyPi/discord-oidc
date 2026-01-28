@@ -33,7 +33,7 @@
     "openid-client": "^6.8.1",
     "prettier": "^3.8.0",
     "tsx": "^4.21.0",
-    "type-fest": "^5.4.1",
+    "type-fest": "^5.4.2",
     "typescript": "^5.9.3"
   }
 }
