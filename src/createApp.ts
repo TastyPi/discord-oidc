@@ -1,6 +1,5 @@
-import { Config } from "./schemas/config.js";
+import { type NormalizedConfig } from "./schemas/config.js";
 import * as oidc from "oidc-provider";
-import { Value } from "typebox/value";
 import Koa from "koa";
 import mount from "koa-mount";
 import Router from "@koa/router";
@@ -13,8 +12,7 @@ import { DiscordAccessTokens } from "./DiscordAccessTokens.js";
 import type { APIUser } from "discord-api-types/v10";
 import { claims } from "./oidc/claims.js";
 
-export function createApp(config: Config): Koa {
-  Value.Assert(Config, config);
+export function createApp(config: NormalizedConfig): Koa {
   const discordAccessTokens = new DiscordAccessTokens();
   const provider = new oidc.Provider(
     config.url,
@@ -126,7 +124,7 @@ export function createApp(config: Config): Koa {
 }
 
 function oidcConfig(
-  config: Config,
+  config: NormalizedConfig,
   options: FindAccountOptions,
 ): oidc.Configuration {
   return {
@@ -142,7 +140,7 @@ function oidcConfig(
   };
 }
 
-function discordAuthorizeURL(config: Config, state: string): string {
+function discordAuthorizeURL(config: NormalizedConfig, state: string): string {
   const url = new URL("https://discord.com/oauth2/authorize");
   url.searchParams.set("client_id", config.discord.client_id);
   url.searchParams.set("redirect_uri", discordRedirectURI(config));
@@ -152,7 +150,7 @@ function discordAuthorizeURL(config: Config, state: string): string {
   return url.toString();
 }
 
-function discordRedirectURI(config: Config): string {
+function discordRedirectURI(config: NormalizedConfig): string {
   const url = new URL(config.url);
   url.pathname = path.join(url.pathname, "discord/callback");
   return url.toString();
