@@ -18,7 +18,7 @@
     "koa-mount": "^4.2.0",
     "oidc-provider": "^9.6.0",
     "typebox": "^1.1.23",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@types/koa": "^3.0.1",
