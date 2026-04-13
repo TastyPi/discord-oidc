@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@koa/router": "^15.4.0",
-    "immutable": "^5.1.4",
+    "immutable": "^5.1.5",
     "koa": "^3.2.0",
     "koa-mount": "^4.2.0",
     "oidc-provider": "^9.8.0",
