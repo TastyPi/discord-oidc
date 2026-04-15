@@ -31,7 +31,7 @@
     "jwt-decode": "^4.0.0",
     "nock": "^14.0.12",
     "openid-client": "^6.8.3",
-    "prettier": "^3.8.2",
+    "prettier": "^3.8.3",
     "tsx": "^4.21.0",
     "type-fest": "^5.5.0",
     "typescript": "^6.0.2"
