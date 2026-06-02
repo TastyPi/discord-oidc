@@ -12,7 +12,7 @@
     "issue-token": "node --import=tsx scripts/issue-token.ts"
   },
   "dependencies": {
-    "@koa/router": "^15.5.0",
+    "@koa/router": "^15.6.0",
     "immutable": "^5.1.6",
     "koa": "^3.2.1",
     "koa-mount": "^4.2.0",
