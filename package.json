@@ -16,7 +16,7 @@
     "immutable": "^5.1.6",
     "koa": "^3.2.1",
     "koa-mount": "^4.2.0",
-    "oidc-provider": "^9.8.4",
+    "oidc-provider": "^9.8.5",
     "typebox": "^1.2.13",
     "yaml": "^2.9.0"
   },
