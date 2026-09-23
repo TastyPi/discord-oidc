@@ -32,7 +32,7 @@
     "nock": "^14.0.17",
     "openid-client": "^6.8.8",
     "prettier": "^3.9.8",
-    "tsx": "^4.23.13",
+    "tsx": "^4.23.15",
     "type-fest": "^5.10.0",
     "typescript": "^7.0.2"
   }
