@@ -30,7 +30,7 @@
     "fetch-cookie": "^3.2.0",
     "jwt-decode": "^4.0.0",
     "nock": "^15.0.6",
-    "openid-client": "^6.8.9",
+    "openid-client": "^6.9.0",
     "prettier": "^3.10.1",
     "tsx": "^4.23.15",
     "type-fest": "^5.10.0",
